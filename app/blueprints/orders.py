@@ -10,5 +10,11 @@ def checkout():
     user = getattr(request, "user")
     body = request.get_json(force=True)
     coupon = body.get("coupon_code")
-    res = supa_service().postgres.execute("select checkout_order(%s, %s) as order_id;", (user.id, coupon))
-    return jsonify({"order_id": res.data[0]["order_id"]}), 201
+    client = supa_service()
+    res = client.rpc("checkout_order", {
+        "p_auth_user_id": user.id,
+        "p_coupon": coupon
+    }).execute()
+    # rpc retorna el UUID; normalizamos
+    order_id = res.data if isinstance(res.data, str) else (res.data[0] if res.data else None)
+    return jsonify({"order_id": order_id}), 201
