@@ -1,0 +1,71 @@
+{
+  "info": {
+    "name": "La Bodegonea API",
+    "_postman_id": "abcd",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List products (public)",
+      "request": {
+        "method": "GET",
+        "url": "{{API_BASE_URL}}/api/products"
+      }
+    },
+    {
+      "name": "Get product (public)",
+      "request": {
+        "method": "GET",
+        "url": "{{API_BASE_URL}}/api/products/{{product_id}}"
+      }
+    },
+    {
+      "name": "Create product (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_ADMIN}}"
+          }
+        ],
+        "url": "{{API_BASE_URL}}/api/admin/products",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\":\"Laptop X\",\"sku\":\"LAP-X-01\",\"price\":5999,\n  \"category_id\":1,\"brand_id\":1,\"status\":\"draft\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Checkout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{JWT_CLIENTE}}"
+          }
+        ],
+        "url": "{{API_BASE_URL}}/api/orders/checkout",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"coupon_code\":\"BIENVENIDA\"}"
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "API_BASE_URL",
+      "value": ""
+    },
+    {
+      "key": "JWT_ADMIN",
+      "value": ""
+    },
+    {
+      "key": "JWT_CLIENTE",
+      "value": ""
+    }
+  ]
+}

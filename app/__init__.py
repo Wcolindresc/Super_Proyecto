@@ -1,0 +1,25 @@
+from flask import Flask, jsonify
+from .config import Settings
+from .supabase_client import init_supabase
+from .blueprints.public import bp as public_bp
+from .blueprints.admin import bp as admin_bp
+from .blueprints.cart import bp as cart_bp
+from .blueprints.orders import bp as orders_bp
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Settings())
+
+    @app.get("/health")
+    def health():
+        return jsonify(ok=True)
+
+    init_supabase(app)
+
+    app.register_blueprint(public_bp, url_prefix="/api")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(cart_bp, url_prefix="/api")
+    app.register_blueprint(orders_bp, url_prefix="/api")
+    return app
+
+app = create_app()

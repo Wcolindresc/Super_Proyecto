@@ -1,0 +1,19 @@
+name: Deploy Backend (Render)
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'requirements.txt'
+      - 'Procfile'
+      - '.github/workflows/deploy.yml'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Trigger Render Deploy
+      uses: johnbeynon/render-deploy-action@v0.0.9
+      with:
+        service-id: ${{ secrets.RENDER_SERVICE_ID }}
+        api-key: ${{ secrets.RENDER_API_KEY }}

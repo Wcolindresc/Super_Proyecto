@@ -1,0 +1,31 @@
+name: Provision Database
+on:
+  workflow_dispatch:
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - run: pip install psycopg2-binary
+    - name: Apply migrations 00→03
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: |
+        python - << 'PY'
+        import os, psycopg2
+        files = ["00_schema.sql","01_rls.sql","02_seed.sql","03_storage.sql"]
+        dsn = os.environ["DATABASE_URL"]
+        conn = psycopg2.connect(dsn)
+        conn.autocommit = True
+        cur = conn.cursor()
+        for f in files:
+            path = os.path.join("supabase","migrations",f)
+            print(">> applying", path)
+            with open(path, "r", encoding="utf-8") as fh:
+                cur.execute(fh.read())
+        cur.close(); conn.close()
+        print("DONE")
+        PY
