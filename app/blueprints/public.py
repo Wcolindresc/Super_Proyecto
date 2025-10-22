@@ -13,35 +13,68 @@ def list_products():
     maxp = to_int(request.args.get("max"))
     order = request.args.get("order", "name.asc")
 
-    sql = '''
-    select p.id, p.name, p.sku, p.price, p.old_price, p.status,
-           (select url from product_images pi where pi.product_id=p.id and pi.is_primary = true
-            order by sort_order asc limit 1) as primary_image
-    from products p
-    where p.status='published'
-      and (%(q)s is null or p.name ilike '%%' || %(q)s || '%%')
-      and (%(brand)s is null or p.brand_id in (select id from brands where slug=%(brand)s))
-      and (%(category)s is null or p.category_id in (select id from categories where slug=%(category)s))
-      and (%(min)s is null or p.price >= %(min)s)
-      and (%(max)s is null or p.price <= %(max)s)
-    order by case when %(order)s='price.asc' then p.price end asc,
-             case when %(order)s='price.desc' then p.price end desc,
-             case when %(order)s='name.asc' then p.name end asc nulls last;
-    '''
-    data = supa_service().postgres.execute(sql, {
-        "q": q, "brand": brand, "category": category, "min": minp, "max": maxp, "order": order
-    })
-    return jsonify(data.data or [])
+    client = supa_service()
+
+    # base: solo publicados
+    query = client.table("products").select(
+        "id,name,sku,price,old_price,status,brand_id,category_id"
+    ).eq("status", "published")
+
+    if q:
+        query = query.ilike("name", f"%{q}%")
+    if brand:
+        # necesitamos brand_id; resolvemos por slug
+        b = client.table("brands").select("id").eq("slug", brand).limit(1).execute()
+        if b.data:
+            query = query.eq("brand_id", b.data[0]["id"])
+        else:
+            return jsonify([])  # no hay marca => vacío
+    if category:
+        c = client.table("categories").select("id").eq("slug", category).limit(1).execute()
+        if c.data:
+            query = query.eq("category_id", c.data[0]["id"])
+        else:
+            return jsonify([])
+
+    if minp is not None:
+        query = query.gte("price", minp)
+    if maxp is not None:
+        query = query.lte("price", maxp)
+
+    # orden
+    if order == "price.asc":
+        query = query.order("price", desc=False)
+    elif order == "price.desc":
+        query = query.order("price", desc=True)
+    else:
+        query = query.order("name", desc=False)
+
+    prods = query.limit(60).execute().data or []
+
+    # obtener imagen principal en un solo batch
+    ids = [p["id"] for p in prods]
+    primary = {}
+    if ids:
+        imgs = client.table("product_images").select("product_id,url,is_primary,sort_order")\
+            .in_("product_id", ids).eq("is_primary", True).order("sort_order", desc=False).execute().data or []
+        for im in imgs:
+            pid = im["product_id"]
+            if pid not in primary:
+                primary[pid] = im["url"]
+
+    for p in prods:
+        p["primary_image"] = primary.get(p["id"])
+    return jsonify(prods)
 
 @bp.get("/products/<uuid:pid>")
 def get_product(pid):
-    sql = '''
-    select p.*, coalesce(json_agg(pi order by pi.sort_order) filter (where pi.id is not null), '[]') as images
-    from products p
-    left join product_images pi on pi.product_id=p.id
-    where p.id=%(pid)s and p.status='published'
-    group by p.id;
-    '''
-    data = supa_service().postgres.execute(sql, {"pid": str(pid)})
-    rows = data.data or []
-    return (jsonify(rows[0]), 200) if rows else (jsonify({"error":"not_found"}), 404)
+    client = supa_service()
+    r = client.table("products").select("*").eq("id", str(pid)).eq("status","published").limit(1).execute()
+    rows = r.data or []
+    if not rows:
+        return jsonify({"error":"not_found"}), 404
+    prod = rows[0]
+    imgs = client.table("product_images").select("id,url,sort_order,is_primary")\
+        .eq("product_id", str(pid)).order("sort_order", desc=False).execute().data or []
+    prod["images"] = imgs
+    return jsonify(prod)
