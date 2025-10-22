@@ -1,3 +1,6 @@
+-- 03_storage.sql — idempotente
+
+-- Crear bucket (si ya existe, no pasa nada; Supabase ignora duplicado)
 select storage.create_bucket(
   'products',
   public := true,
@@ -5,11 +8,14 @@ select storage.create_bucket(
   allowed_mime_types := array['image/jpeg','image/png','image/webp']
 );
 
-create policy if not exists "Public read products bucket"
+-- Políticas del bucket
+drop policy if exists "Public read products bucket" on storage.objects;
+create policy "Public read products bucket"
 on storage.objects for select
 using ( bucket_id = 'products' );
 
-create policy if not exists "Admin write products bucket"
+drop policy if exists "Admin write products bucket" on storage.objects;
+create policy "Admin write products bucket"
 on storage.objects for all
 using (
   bucket_id='products' and
