@@ -1,3 +1,5 @@
+-- 02_seed.sql (FIX ENUM CAST)
+
 insert into app_users(auth_user_id, email, full_name) values
   ('00000000-0000-0000-0000-000000000001','admin@labodegonea.gt','Admin Demo')
 on conflict (auth_user_id) do nothing;
@@ -30,7 +32,10 @@ do $$
 declare i int := 1;
 begin
   while i <= 32 loop
-    insert into products(sku, name, price, old_price, short_description, description, category_id, brand_id, status, free_shipping)
+    insert into products(
+      sku, name, price, old_price, short_description, description,
+      category_id, brand_id, status, free_shipping
+    )
     values (
       'SKU-'||to_char(i,'FM00'),
       'Producto Demo '||i,
@@ -40,7 +45,8 @@ begin
       'Descripción larga del producto de demostración #'||i||'. Ideal para pruebas.',
       (select id from categories order by id limit 1),
       (select id from brands order by id limit 1),
-      case when i%3=0 then 'published' else 'draft' end,
+      /* CAST CORRECTO AL ENUM product_status */
+      case when i%3=0 then 'published'::product_status else 'draft'::product_status end,
       (i%2=0)
     );
     i := i + 1;
