@@ -6,16 +6,20 @@ from .blueprints.public import bp as public_bp
 from .blueprints.admin import bp as admin_bp
 from .blueprints.cart import bp as cart_bp
 from .blueprints.orders import bp as orders_bp
-from flask_cors import CORS
+from flask_cors import CORS  # <-- nuevo
 
 def create_app():
     app = Flask(__name__)
-    CORS(app) 
     app.config.from_object(Settings())
+    CORS(app)  # <-- habilita CORS para el front en Pages
 
     @app.get("/health")
     def health():
         return jsonify(ok=True)
+
+    @app.get("/")  # opcional para evitar 404 en raíz
+    def home():
+        return jsonify(service="La Bodegonea API", ok=True, docs="/health"), 200
 
     init_supabase(app)
 
@@ -34,5 +38,3 @@ def create_app():
         return jsonify(error="not_found"), 404
 
     return app
-
-app = create_app()
