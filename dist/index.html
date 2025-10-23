@@ -1,57 +1,138 @@
-<!doctype html><html lang="es-GT"><head>
-<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>La Bodegonea</title>
-<meta name="description" content="E-commerce rápido con catálogo, carrito y checkout." />
-<link rel="stylesheet" href="./assets/css/clean.css">
-<meta property="og:title" content="La Bodegonea">
-<meta property="og:description" content="Compra fácil en Guatemala (GTQ).">
-<meta property="og:type" content="website">
-<script>window.API_BASE_URL = "https://super-proyecto.onrender.com";</script>
-</head><body>
-<header class="header"><div class="container">
-  <nav style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a href="./"><strong>La Bodegonea</strong></a>
-    <div role="navigation" aria-label="Principal" style="display:flex;gap:12px">
-      <a href="./productos.html">Productos</a>
+<!doctype html>
+<html lang="es-GT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>La Bodegonea</title>
+  <meta name="description" content="E-commerce rápido con catálogo, carrito y checkout." />
+  <meta property="og:title" content="La Bodegonea">
+  <meta property="og:description" content="Compra fácil en Guatemala (GTQ).">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="./assets/css/clean.css">
+  <script>
+    /* URL pública de tu backend en Render */
+    window.API_BASE_URL = "https://super-proyecto.onrender.com";
+  </script>
+</head>
+<body>
+
+  <!-- Topbar con búsqueda y accesos rápidos -->
+  <header class="topbar">
+    <div class="container topbar-row">
+      <a class="brand" href="./"><strong>La Bodegonea</strong></a>
+
+      <form id="searchForm" class="search" role="search">
+        <input id="q" type="search" placeholder="Buscar en La Bodegonea…" aria-label="Buscar">
+        <button class="btn" aria-label="Buscar">🔎</button>
+      </form>
+
+      <nav class="quick" aria-label="Accesos">
+        <a href="./productos.html">Productos</a>
+        <a href="./login.html" title="Iniciar sesión">Mi cuenta</a>
+        <a href="./carrito.html" aria-label="Carrito">🛒</a>
+      </nav>
+    </div>
+
+    <div class="subnav">
+      <div class="container subnav-row">
+        <a href="./productos.html?tag=ofertas">Ofertas</a>
+        <a href="./productos.html?tag=nuevo">Lo + nuevo</a>
+        <a href="./contacto.html">Ayuda</a>
+        <span class="hint">+ Envíos a toda Guatemala</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Héroe + promos (estático, branding propio) -->
+  <section class="hero container" aria-label="Destacados">
+    <div class="hero-main">
+      <a class="banner" href="./productos.html?tag=temporada" aria-label="Especial de temporada">
+        <div class="banner-text">
+          <h2>Especial de temporada</h2>
+          <p>Accesorios, hogar y más</p>
+          <span class="btn">Ver promos</span>
+        </div>
+      </a>
+    </div>
+    <div class="hero-side">
+      <a class="promo" href="./productos.html?brand=demo-brand">Ciencia Divertida</a>
+      <a class="promo" href="./productos.html?tag=accion">Acción y aventura</a>
+    </div>
+  </section>
+
+  <!-- Chips de categorías (se construyen con datos reales) -->
+  <section class="container chips" aria-label="Categorías populares">
+    <div id="chips"></div>
+  </section>
+
+  <!-- Grilla de productos destacados -->
+  <main class="container" style="margin-top:16px">
+    <section aria-labelledby="tit-favs">
+      <h1 id="tit-favs">Destacados</h1>
+      <div class="grid grid-4" id="grid-prods"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
+      <a href="./terminos.html">Términos</a>
+      <a href="./privacidad.html">Privacidad</a>
+      <a href="./devoluciones.html">Devoluciones</a>
       <a href="./nosotros.html">Nosotros</a>
       <a href="./contacto.html">Contacto</a>
-      <a href="./carrito.html" aria-label="Carrito">🛒</a>
     </div>
-  </nav></div>
-</header>
+  </footer>
 
-<main class="container" style="margin-top:20px">
-  <section aria-labelledby="tit-favs">
-    <h1 id="tit-favs">Destacados</h1>
-    <div class="grid grid-4" id="grid-prods"></div>
-  </section>
-</main>
+  <script>
+    const Q = v => new Intl.NumberFormat("es-GT",{style:"currency",currency:"GTQ"}).format(v);
 
-<footer class="footer"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
-  <a href="./terminos.html">Términos</a>
-  <a href="./privacidad.html">Privacidad</a>
-  <a href="./devoluciones.html">Devoluciones</a>
-</div></footer>
+    // Redirigir búsqueda a la página de catálogo
+    document.getElementById('searchForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const term = document.getElementById('q').value.trim();
+      const url = term ? `./productos.html?q=${encodeURIComponent(term)}` : './productos.html';
+      location.href = url;
+    });
 
-<script>
-const Q = v => new Intl.NumberFormat("es-GT",{style:"currency",currency:"GTQ"}).format(v);
-async function load(){
-  try{
-    const r = await fetch(`${API_BASE_URL}/api/products`);
-    const data = await r.json();
-    const grid = document.getElementById('grid-prods');
-    grid.innerHTML = (data || []).slice(0,8).map(p => `
-      <article class="card">
-        <img src="${p.primary_image || './assets/img/placeholder.webp'}" alt="Imagen de ${p.name}" loading="lazy">
-        <h3>${p.name}</h3>
-        <div class="price">${Q(p.price)}</div>
-        ${p.old_price ? `<div class="badge">Antes ${Q(p.old_price)}</div>`:''}
-        <p><a class="btn" href="./producto.html?id=${p.id}">Ver</a></p>
-      </article>`).join('');
-  }catch(e){
-    console.error(e);
-  }
-}
-load();
-</script>
-</body></html>
+    async function loadFeatured(){
+      const grid = document.getElementById('grid-prods');
+      try{
+        const r = await fetch(`${API_BASE_URL}/api/products`);
+        const data = await r.json();
+        grid.innerHTML = (data || []).slice(0,8).map(p => `
+          <article class="card">
+            <img src="${p.primary_image || './assets/img/placeholder.webp'}" alt="Imagen de ${p.name}" loading="lazy">
+            <h3>${p.name}</h3>
+            <div class="price">${Q(p.price)}</div>
+            ${p.old_price ? `<div class="badge">Antes ${Q(p.old_price)}</div>`:''}
+            <p><a class="btn" href="./producto.html?id=${p.id}">Ver</a></p>
+          </article>`).join('');
+      }catch(e){
+        console.error(e);
+        grid.innerHTML = `<p style="opacity:.7">No fue posible cargar los productos en este momento.</p>`;
+      }
+    }
+
+    // Construye chips de categorías según frecuencia de productos
+    async function loadChips(){
+      const cont = document.getElementById('chips');
+      try{
+        const r = await fetch(`${API_BASE_URL}/api/products`);
+        const data = await r.json();
+        const cats = new Map(); // category_id => count
+        (data||[]).forEach(p => cats.set(p.category_id, (cats.get(p.category_id)||0)+1));
+        const top = [...cats.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+        cont.innerHTML = top.map(([cid,cnt]) =>
+          `<a class="chip" href="./productos.html?category_id=${cid}">Cat ${cid} <small>(${cnt})</small></a>`
+        ).join('');
+      }catch(e){
+        console.warn(e);
+        cont.innerHTML = `<a class="chip" href="./productos.html">Ver todo</a>`;
+      }
+    }
+
+    loadFeatured();
+    loadChips();
+  </script>
+</body>
+</html>
