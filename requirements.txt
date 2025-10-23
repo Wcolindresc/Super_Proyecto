@@ -5,3 +5,5 @@ supabase==2.6.0
 psycopg2-binary==2.9.9
 requests==2.32.3
 PyJWT==2.9.0
+flask-cors
+
