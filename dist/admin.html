@@ -1,0 +1,155 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - La Bodegonea</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = window.API_BASE_URL || "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://cfpkiklvmsmonqvmjzuy.supabase.co";          /* <— REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmcGtpa2x2bXNtb25xdm1qenV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTI4MjIsImV4cCI6MjA3NjcyODgyMn0.kK2DBGI_Hun0_DWmsqV15yGRYpPsyx-akNKlqKXoZCQ";                               /* <— REEMPLAZA */
+</script>
+</head><body class="container" style="max-width:1100px">
+<header class="header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+  <strong>Panel de Administración</strong>
+  <nav style="display:flex;gap:12px">
+    <a class="btn" href="./">Ver tienda</a>
+    <button class="btn" id="logout">Salir</button>
+  </nav>
+</header>
+
+<section class="card" style="padding:16px;margin-bottom:16px">
+  <h2>Nuevo producto</h2>
+  <form id="newp" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end">
+    <label class="col-span-2">Nombre <input name="name" required></label>
+    <label>SKU <input name="sku" required></label>
+    <label>Precio <input type="number" name="price" required min="0"></label>
+    <label>Antes <input type="number" name="old_price" min="0"></label>
+    <label class="col-span-3">Resumen <input name="short_description"></label>
+    <label class="col-span-6">Descripción <textarea name="description" rows="3"></textarea></label>
+    <label>Categoría ID <input type="number" name="category_id" value="1" required></label>
+    <label>Marca ID <input type="number" name="brand_id" value="1" required></label>
+    <label>Estado
+      <select name="status"><option value="draft">Borrador</option><option value="published">Publicado</option></select>
+    </label>
+    <button class="btn col-span-2" type="submit">Crear</button>
+  </form>
+</section>
+
+<section class="card" style="padding:16px">
+  <h2>Productos</h2>
+  <div id="list" class="grid grid-3"></div>
+</section>
+
+<!-- Modal para subir imagen -->
+<div id="upModal" class="card" style="display:none;position:fixed;inset:20%;padding:16px;background:var(--surface);z-index:10">
+  <h3>Subir imagen</h3>
+  <form id="upForm" style="display:grid;gap:8px">
+    <input type="file" name="file" accept="image/png,image/jpeg,image/webp" required>
+    <input type="hidden" name="product_id">
+    <input type="hidden" name="prefix">
+    <label>Principal <input type="checkbox" name="is_primary"></label>
+    <label>Orden <input type="number" name="sort_order" value="0"></label>
+    <div style="display:flex;gap:8px;justify-content:end">
+      <button class="btn" type="submit">Subir</button>
+      <button class="btn" type="button" onclick="hideUp()">Cerrar</button>
+    </div>
+  </form>
+</div>
+
+<footer class="footer" style="margin-top:16px"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
+</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('logout').onclick = signOut;
+
+function showUp(pid, sku){
+  const m = document.getElementById('upModal');
+  const f = document.getElementById('upForm');
+  f.product_id.value = pid;
+  f.prefix.value = sku ? `products/${sku}` : "products";
+  m.style.display = 'block';
+}
+function hideUp(){ document.getElementById('upModal').style.display='none'; }
+
+async function loadList(){
+  const res = await fetch(`${API_BASE_URL}/api/products`);
+  const data = await res.json();
+  const el = document.getElementById('list');
+  el.innerHTML = (data||[]).map(p=>`
+    <article class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>${p.name}</strong>
+        <span class="badge">${p.status}</span>
+      </div>
+      <div>SKU: ${p.sku}</div>
+      <div>Q ${p.price} ${p.old_price?`<small>antes Q ${p.old_price}</small>`:""}</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" onclick="publish('${p.id}')">Publicar</button>
+        <button class="btn" onclick="hideProd('${p.id}')">Ocultar</button>
+        <button class="btn" onclick="showUp('${p.id}','${p.sku||""}')">Subir imagen</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+async function publish(id){
+  try {
+    await fetchAuth(`${API_BASE_URL}/api/admin/products/${id}`, {
+      method:"PUT", body: JSON.stringify({ status:"published" })
+    });
+    await loadList();
+  } catch(e){ alert(e.message); }
+}
+async function hideProd(id){
+  try {
+    await fetchAuth(`${API_BASE_URL}/api/admin/products/${id}`, {
+      method:"PUT", body: JSON.stringify({ status:"hidden" })
+    });
+    await loadList();
+  } catch(e){ alert(e.message); }
+}
+
+document.getElementById('newp').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const body = Object.fromEntries(fd.entries());
+  body.price = Number(body.price||0);
+  body.old_price = body.old_price? Number(body.old_price): null;
+  body.category_id = Number(body.category_id);
+  body.brand_id = Number(body.brand_id);
+  try {
+    await fetchAuth(`${API_BASE_URL}/api/admin/products`, {
+      method:"POST", body: JSON.stringify(body)
+    });
+    e.target.reset();
+    await loadList();
+  } catch(err){ alert(err.message); }
+});
+
+document.getElementById('upForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  try {
+    const fd = new FormData(e.target);
+    const up = await fetchAuthFormData(`${API_BASE_URL}/api/admin/upload`, fd);
+    // Guardar en product_images
+    await fetchAuth(`${API_BASE_URL}/api/admin/products/${fd.get('product_id')}/images`, {
+      method: "POST",
+      body: JSON.stringify({
+        url: up.public_url,
+        sort_order: Number(fd.get('sort_order')||0),
+        is_primary: !!fd.get('is_primary')
+      })
+    });
+    hideUp();
+    alert("Imagen subida.");
+  } catch(err){ alert(err.message); }
+});
+
+// Proteger y cargar
+ensureAdmin().then(ok => ok && loadList());
+</script>
+</body></html>
