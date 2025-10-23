@@ -6,9 +6,11 @@ from .blueprints.public import bp as public_bp
 from .blueprints.admin import bp as admin_bp
 from .blueprints.cart import bp as cart_bp
 from .blueprints.orders import bp as orders_bp
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
+    CORS(app) 
     app.config.from_object(Settings())
 
     @app.get("/health")
