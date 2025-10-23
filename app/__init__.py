@@ -11,24 +11,20 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Settings())
 
-    # Healthcheck simple
     @app.get("/health")
     def health():
         return jsonify(ok=True)
 
-    # Inicializar clientes de Supabase (anon + service)
     init_supabase(app)
 
-    # Blueprints
     app.register_blueprint(public_bp, url_prefix="/api")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(cart_bp, url_prefix="/api")
     app.register_blueprint(orders_bp, url_prefix="/api")
 
-    # Manejo global de errores: log + JSON
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
-        app.logger.exception("Unhandled error")  # visible en Render → Logs
+        app.logger.exception("Unhandled error")
         return jsonify(error="internal_error", detail=str(e)), 500
 
     @app.errorhandler(404)
@@ -37,5 +33,4 @@ def create_app():
 
     return app
 
-# WSGI entrypoint para gunicorn
 app = create_app()
