@@ -1,26 +1,32 @@
 <!doctype html><html lang="es-GT"><head>
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Checkout - La Bodegonea</title>
-<link rel="stylesheet" href="/assets/css/clean.css">
-<script>window.API_BASE_URL = window.API_BASE_URL || "REEMPLAZA_CON_URL_API";</script>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>window.API_BASE_URL = window.API_BASE_URL || "TU_API_PUBLICA";</script>
 </head><body>
 <header class="header"><div class="container">
   <nav style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a href="/"><strong>La Bodegonea</strong></a>
+    <a href="./"><strong>La Bodegonea</strong></a>
     <div role="navigation" aria-label="Principal" style="display:flex;gap:12px">
-      <a href="/productos.html">Productos</a>
-      <a href="/nosotros.html">Nosotros</a>
-      <a href="/contacto.html">Contacto</a>
-      <a href="/carrito.html" aria-label="Carrito">🛒</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./nosotros.html">Nosotros</a>
+      <a href="./contacto.html">Contacto</a>
+      <a href="./carrito.html" aria-label="Carrito">🛒</a>
     </div>
-  </nav>
-</div></header>
-
-<main class="container" style="margin-top:20px"><h1>Checkout</h1><p>Tras confirmar, se genera mensaje de WhatsApp con resumen.</p><p><a id='wa' class='btn' href='#'>WhatsApp</a></p><script>const msg=encodeURIComponent('Pedido confirmado en La Bodegonea. Total Q 0.00');document.getElementById('wa').href='https://wa.me/?text='+msg;</script></main>
+  </nav></div>
+</header>
+<main class="container" style="margin-top:20px">
+  <h1>Checkout</h1>
+  <p>Tras confirmar, se genera mensaje de WhatsApp con resumen.</p>
+  <p><a id="wa" class="btn" href="#">WhatsApp</a></p>
+</main>
 <footer class="footer"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
-  <a href="/terminos.html">Términos</a>
-  <a href="/privacidad.html">Privacidad</a>
-  <a href="/devoluciones.html">Devoluciones</a>
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
 </div></footer>
-
+<script>
+const msg=encodeURIComponent('Pedido confirmado en La Bodegonea. Total Q 0.00');
+document.getElementById('wa').href='https://wa.me/?text='+msg;
+</script>
 </body></html>
