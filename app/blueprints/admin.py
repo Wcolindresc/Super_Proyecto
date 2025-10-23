@@ -1,65 +1,45 @@
-from flask import Blueprint, request, jsonify
+# app/blueprints/admin.py  (fragmento nuevo al final)
+from flask import request, jsonify
 from ..auth import require_role
 from ..supabase_client import supa_service
-from datetime import datetime, timezone
 
-bp = Blueprint("admin", __name__)
-
-@bp.post("/products")
+@bp.get("/me")
 @require_role("Admin")
-def create_product():
-    body = request.get_json(force=True)
-    client = supa_service()
-    data = {
-        "name": body.get("name"),
-        "sku": body.get("sku"),
-        "price": body.get("price"),
-        "old_price": body.get("old_price"),
-        "short_description": body.get("short_description"),
-        "description": body.get("description"),
-        "category_id": body.get("category_id"),
-        "brand_id": body.get("brand_id"),
-        "status": body.get("status", "draft"),
-        "free_shipping": body.get("free_shipping", False),
-    }
-    res = client.table("products").insert(data).select("id").execute()
-    return jsonify(res.data[0]), 201
+def who_am_i():
+    return jsonify({"role": "Admin"}), 200
 
-@bp.put("/products/<uuid:pid>")
+@bp.post("/upload")
 @require_role("Admin")
-def update_product(pid):
-    body = request.get_json(force=True)
+def upload_image():
+    from werkzeug.utils import secure_filename
+    import time, mimetypes
+
     client = supa_service()
-    patch = {k: v for k, v in {
-        "name": body.get("name"),
-        "sku": body.get("sku"),
-        "price": body.get("price"),
-        "old_price": body.get("old_price"),
-        "short_description": body.get("short_description"),
-        "description": body.get("description"),
-        "category_id": body.get("category_id"),
-        "brand_id": body.get("brand_id"),
-        "status": body.get("status"),
-        "free_shipping": body.get("free_shipping"),
-    }.items() if v is not None}
 
-    # published_at simple client-side
-    if patch.get("status") == "published":
-        patch.setdefault("published_at", datetime.now(timezone.utc).isoformat())
+    if "file" not in request.files:
+        return jsonify({"error": "no_file"}), 400
 
-    res = client.table("products").update(patch).eq("id", str(pid)).select("id").execute()
-    return jsonify(res.data[0] if res.data else {}), 200
+    f = request.files["file"]
+    filename = secure_filename(f.filename or "upload.bin")
+    mime = f.mimetype or mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
-@bp.post("/products/<uuid:pid>/images")
-@require_role("Admin")
-def add_image(pid):
-    body = request.get_json(force=True)
-    client = supa_service()
-    data = {
-        "product_id": str(pid),
-        "url": body.get("url"),
-        "sort_order": body.get("sort_order", 0),
-        "is_primary": bool(body.get("is_primary", False))
-    }
-    res = client.table("product_images").insert(data).select("id").execute()
-    return jsonify(res.data[0]), 201
+    if mime not in ["image/jpeg", "image/png", "image/webp"]:
+        return jsonify({"error": "unsupported_type"}), 400
+
+    f.seek(0, 2); size = f.tell(); f.seek(0)
+    if size > 5 * 1024 * 1024:
+        return jsonify({"error": "too_large"}), 400
+
+    prefix = request.form.get("prefix", "").strip().rstrip("/")
+    ts = int(time.time())
+    path = f"{prefix}/{ts}_{filename}" if prefix else f"{ts}_{filename}"
+
+    data = f.read()
+    res = client.storage.from_("products").upload(
+        path=path, file=data, file_options={"content-type": mime, "upsert": True}
+    )
+    if getattr(res, "error", None):
+        return jsonify({"error": "upload_failed", "detail": str(res.error)}), 500
+
+    public_url = client.storage.from_("products").get_public_url(path)
+    return jsonify({"path": path, "public_url": public_url}), 201
