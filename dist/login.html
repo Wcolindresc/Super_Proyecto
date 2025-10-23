@@ -1,0 +1,44 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ingresar - La Bodegonea</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = window.API_BASE_URL || "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";          /* <— REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJ...";                               /* <— REEMPLAZA */
+</script>
+</head><body class="container" style="max-width:520px">
+<header class="header" style="margin-bottom:16px">
+  <nav style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <a href="./"><strong>La Bodegonea</strong></a>
+    <a href="./registro.html">Crear cuenta</a>
+  </nav>
+</header>
+
+<h1>Ingresar</h1>
+<form id="f" class="card" style="padding:16px;display:grid;gap:12px">
+  <label>Email <input type="email" name="email" required></label>
+  <label>Contraseña <input type="password" name="password" required></label>
+  <button class="btn" type="submit">Entrar</button>
+</form>
+
+<footer class="footer" style="margin-top:16px"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
+</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  try {
+    await signIn(fd.get('email'), fd.get('password'));
+    const next = new URLSearchParams(location.search).get('next') || 'admin.html';
+    location.href = './' + next;
+  } catch (err) { alert(err.message); }
+});
+</script>
+</body></html>
