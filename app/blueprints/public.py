@@ -1,7 +1,7 @@
 # app/blueprints/public.py
 from flask import Blueprint, jsonify, request
 from .utils import to_int
-from ..supabase_client import supa_public  # usar cliente público (anon) para respetar RLS
+from ..supabase_client import supa_public  # cliente público (anon) para respetar RLS
 
 bp = Blueprint("public", __name__)
 
@@ -9,7 +9,7 @@ bp = Blueprint("public", __name__)
 def list_products():
     """
     Lista de productos públicos (solo status='published').
-    Filtros: q (nombre), brand (slug), category (slug), min, max
+    Filtros: q, brand (slug), category (slug), min, max.
     Orden: name.asc (default) | price.asc | price.desc
     """
     try:
@@ -59,7 +59,7 @@ def list_products():
 
         prods = query.limit(limit).execute().data or []
 
-        # imagen principal
+        # imagen principal por producto (primer is_primary por sort_order)
         ids = [p["id"] for p in prods]
         primary = {}
         if ids:
@@ -89,7 +89,7 @@ def list_products():
 
 @bp.get("/products/<uuid:pid>")
 def get_product(pid):
-    """Detalle público de un producto (solo si está published)."""
+    """Detalle de un producto publicado."""
     try:
         client = supa_public()
         r = (
