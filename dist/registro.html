@@ -1,0 +1,45 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registro - La Bodegonea</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = window.API_BASE_URL || "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://cfpkiklvmsmonqvmjzuy.supabase.co";          /* <— REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmcGtpa2x2bXNtb25xdm1qenV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTI4MjIsImV4cCI6MjA3NjcyODgyMn0.kK2DBGI_Hun0_DWmsqV15yGRYpPsyx-akNKlqKXoZCQ";                               /* <— REEMPLAZA */
+</script>
+</head><body class="container" style="max-width:520px">
+<header class="header" style="margin-bottom:16px">
+  <nav style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <a href="./"><strong>La Bodegonea</strong></a>
+    <a href="./login.html">Ingresar</a>
+  </nav>
+</header>
+
+<h1>Crear cuenta</h1>
+<form id="f" class="card" style="padding:16px;display:grid;gap:12px">
+  <label>Nombre completo <input name="name" required></label>
+  <label>Email <input type="email" name="email" required></label>
+  <label>Contraseña <input type="password" name="password" required minlength="8"></label>
+  <button class="btn" type="submit">Registrarme</button>
+</form>
+
+<footer class="footer" style="margin-top:16px"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
+</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  try {
+    await signUp(fd.get('email'), fd.get('password'), fd.get('name'));
+    alert("Revisá tu correo para confirmar la cuenta.");
+    location.href = './login.html';
+  } catch (err) { alert(err.message); }
+});
+</script>
+</body></html>
