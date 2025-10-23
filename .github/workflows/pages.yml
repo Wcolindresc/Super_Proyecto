@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Si tu front es 100% estático ya está "build" en /dist; si necesitas minificar/hacer algo, hazlo aquí.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
