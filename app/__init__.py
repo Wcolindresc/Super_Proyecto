@@ -1,33 +1,38 @@
 # app/__init__.py
 from flask import Flask, jsonify
+from flask_cors import CORS
 from .config import Settings
 from .supabase_client import init_supabase
 from .blueprints.public import bp as public_bp
 from .blueprints.admin import bp as admin_bp
 from .blueprints.cart import bp as cart_bp
 from .blueprints.orders import bp as orders_bp
-from flask_cors import CORS  # <-- nuevo
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Settings())
-    CORS(app)  # <-- habilita CORS para el front en Pages
+
+    # CORS para que el front en GitHub Pages pueda llamar a la API
+    CORS(app)
 
     @app.get("/health")
     def health():
         return jsonify(ok=True)
 
-    @app.get("/")  # opcional para evitar 404 en raíz
+    # Página raíz simple (evita 404 en /)
+    @app.get("/")
     def home():
         return jsonify(service="La Bodegonea API", ok=True, docs="/health"), 200
 
     init_supabase(app)
 
+    # Blueprints
     app.register_blueprint(public_bp, url_prefix="/api")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(cart_bp, url_prefix="/api")
     app.register_blueprint(orders_bp, url_prefix="/api")
 
+    # Errores globales
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
         app.logger.exception("Unhandled error")
@@ -38,3 +43,5 @@ def create_app():
         return jsonify(error="not_found"), 404
 
     return app
+
+app = create_app()
