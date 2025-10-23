@@ -9,9 +9,8 @@ bp = Blueprint("public", __name__)
 def list_products():
     """
     Lista de productos públicos (solo status='published').
-    Soporta filtros: q (nombre), brand (slug), category (slug), min, max.
+    Filtros: q (nombre), brand (slug), category (slug), min, max
     Orden: name.asc (default) | price.asc | price.desc
-    Paginación simple: ?limit=60
     """
     try:
         q = request.args.get("q")
@@ -29,11 +28,9 @@ def list_products():
             "id,name,sku,price,old_price,status,brand_id,category_id"
         ).eq("status", "published")
 
-        # búsqueda por nombre
         if q:
             query = query.ilike("name", f"%{q}%")
 
-        # filtrar por brand slug -> brand_id
         if brand:
             b = client.table("brands").select("id").eq("slug", brand).limit(1).execute()
             if b.data:
@@ -41,7 +38,6 @@ def list_products():
             else:
                 return jsonify([])
 
-        # filtrar por category slug -> category_id
         if category:
             c = client.table("categories").select("id").eq("slug", category).limit(1).execute()
             if c.data:
@@ -49,13 +45,11 @@ def list_products():
             else:
                 return jsonify([])
 
-        # rangos de precio
         if minp is not None:
             query = query.gte("price", minp)
         if maxp is not None:
             query = query.lte("price", maxp)
 
-        # orden
         if order == "price.asc":
             query = query.order("price", desc=False)
         elif order == "price.desc":
@@ -65,7 +59,7 @@ def list_products():
 
         prods = query.limit(limit).execute().data or []
 
-        # imagen principal en un solo batch
+        # imagen principal
         ids = [p["id"] for p in prods]
         primary = {}
         if ids:
@@ -81,7 +75,6 @@ def list_products():
             )
             for im in imgs:
                 pid = im["product_id"]
-                # primer resultado por sort_order será la principal
                 if pid not in primary:
                     primary[pid] = im["url"]
 
@@ -91,7 +84,6 @@ def list_products():
         return jsonify(prods)
 
     except Exception as e:
-        # Devuelve un JSON útil; logs detallados quedan en el servidor
         return jsonify({"error": "internal_error", "detail": str(e)}), 500
 
 
@@ -100,7 +92,6 @@ def get_product(pid):
     """Detalle público de un producto (solo si está published)."""
     try:
         client = supa_public()
-
         r = (
             client.table("products")
             .select("*")
