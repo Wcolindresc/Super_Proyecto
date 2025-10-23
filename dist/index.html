@@ -2,23 +2,23 @@
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>La Bodegonea</title>
 <meta name="description" content="E-commerce rápido con catálogo, carrito y checkout." />
-<link rel="stylesheet" href="/assets/css/clean.css">
+<link rel="stylesheet" href="./assets/css/clean.css">
 <meta property="og:title" content="La Bodegonea">
 <meta property="og:description" content="Compra fácil en Guatemala (GTQ).">
 <meta property="og:type" content="website">
-<script>window.API_BASE_URL = "REEMPLAZA_CON_URL_API";</script>
+<script>window.API_BASE_URL = "https://super-proyecto.onrender.com";</script>
 </head><body>
 <header class="header"><div class="container">
   <nav style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a href="/"><strong>La Bodegonea</strong></a>
+    <a href="./"><strong>La Bodegonea</strong></a>
     <div role="navigation" aria-label="Principal" style="display:flex;gap:12px">
-      <a href="/productos.html">Productos</a>
-      <a href="/nosotros.html">Nosotros</a>
-      <a href="/contacto.html">Contacto</a>
-      <a href="/carrito.html" aria-label="Carrito">🛒</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./nosotros.html">Nosotros</a>
+      <a href="./contacto.html">Contacto</a>
+      <a href="./carrito.html" aria-label="Carrito">🛒</a>
     </div>
-  </nav>
-</div></header>
+  </nav></div>
+</header>
 
 <main class="container" style="margin-top:20px">
   <section aria-labelledby="tit-favs">
@@ -26,26 +26,31 @@
     <div class="grid grid-4" id="grid-prods"></div>
   </section>
 </main>
+
 <footer class="footer"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
-  <a href="/terminos.html">Términos</a>
-  <a href="/privacidad.html">Privacidad</a>
-  <a href="/devoluciones.html">Devoluciones</a>
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
 </div></footer>
 
 <script>
 const Q = v => new Intl.NumberFormat("es-GT",{style:"currency",currency:"GTQ"}).format(v);
 async function load(){
-  const r = await fetch(`${API_BASE_URL}/api/products`);
-  const data = await r.json();
-  const grid = document.getElementById('grid-prods');
-  grid.innerHTML = data.slice(0,8).map(p => `
-    <article class="card">
-      <img src="${p.primary_image || '/assets/img/placeholder.webp'}" alt="Imagen de ${p.name}" loading="lazy">
-      <h3>${p.name}</h3>
-      <div class="price">${Q(p.price)}</div>
-      ${p.old_price ? `<div class="badge">Antes ${Q(p.old_price)}</div>`:''}
-      <p><a class="btn" href="/producto.html?id=${p.id}">Ver</a></p>
-    </article>`).join('');
+  try{
+    const r = await fetch(`${API_BASE_URL}/api/products`);
+    const data = await r.json();
+    const grid = document.getElementById('grid-prods');
+    grid.innerHTML = (data || []).slice(0,8).map(p => `
+      <article class="card">
+        <img src="${p.primary_image || './assets/img/placeholder.webp'}" alt="Imagen de ${p.name}" loading="lazy">
+        <h3>${p.name}</h3>
+        <div class="price">${Q(p.price)}</div>
+        ${p.old_price ? `<div class="badge">Antes ${Q(p.old_price)}</div>`:''}
+        <p><a class="btn" href="./producto.html?id=${p.id}">Ver</a></p>
+      </article>`).join('');
+  }catch(e){
+    console.error(e);
+  }
 }
 load();
 </script>
