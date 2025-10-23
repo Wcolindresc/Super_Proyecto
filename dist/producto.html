@@ -1,26 +1,41 @@
 <!doctype html><html lang="es-GT"><head>
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Producto - La Bodegonea</title>
-<link rel="stylesheet" href="/assets/css/clean.css">
-<script>window.API_BASE_URL = window.API_BASE_URL || "REEMPLAZA_CON_URL_API";</script>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>window.API_BASE_URL = window.API_BASE_URL || "TU_API_PUBLICA";</script>
 </head><body>
 <header class="header"><div class="container">
   <nav style="display:flex;gap:16px;align-items:center;justify-content:space-between">
-    <a href="/"><strong>La Bodegonea</strong></a>
+    <a href="./"><strong>La Bodegonea</strong></a>
     <div role="navigation" aria-label="Principal" style="display:flex;gap:12px">
-      <a href="/productos.html">Productos</a>
-      <a href="/nosotros.html">Nosotros</a>
-      <a href="/contacto.html">Contacto</a>
-      <a href="/carrito.html" aria-label="Carrito">🛒</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./nosotros.html">Nosotros</a>
+      <a href="./contacto.html">Contacto</a>
+      <a href="./carrito.html" aria-label="Carrito">🛒</a>
     </div>
-  </nav>
-</div></header>
-
-<main class="container" style="margin-top:20px"><h1>Producto</h1><div id='prod'></div><script>const id=new URLSearchParams(location.search).get('id');fetch(`${API_BASE_URL}/api/products/${id}`).then(r=>r.json()).then(p=>{document.getElementById('prod').innerHTML=`<article class='card'><img src='${(p.images&&p.images[0]&&p.images[0].url)||'/assets/img/placeholder.webp'}' alt='${p.name}' loading='lazy'><h2>${p.name}</h2><div class='price'>Q ${p.price}</div><p>${p.short_description||''}</p><button class='btn' onclick='addToCart("${p.id}")'>Agregar al carrito</button></article>`});async function addToCart(pid){{alert('Para agregar al carrito necesitas estar autenticado (JWT).');}}</script></main>
+  </nav></div>
+</header>
+<main class="container" style="margin-top:20px">
+  <h1>Producto</h1>
+  <div id="prod" class="card"></div>
+</main>
 <footer class="footer"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
-  <a href="/terminos.html">Términos</a>
-  <a href="/privacidad.html">Privacidad</a>
-  <a href="/devoluciones.html">Devoluciones</a>
+  <a href="./terminos.html">Términos</a>
+  <a href="./privacidad.html">Privacidad</a>
+  <a href="./devoluciones.html">Devoluciones</a>
 </div></footer>
+<script>
+const id=new URLSearchParams(location.search).get('id');
+fetch(`${API_BASE_URL}/api/products/${id}`).then(r=>r.json()).then(p=>{
+  document.getElementById('prod').innerHTML=`
+    <img src='${(p.images&&p.images[0]&&p.images[0].url)||'./assets/img/placeholder.webp'}' alt='${p.name}' loading='lazy'>
+    <h2>${p.name}</h2>
+    <div class='price'>Q ${p.price}</div>
+    <p>${p.short_description||''}</p>
+    <button class='btn' onclick='addToCart("${p.id}")'>Agregar al carrito</button>
+  `
+}).catch(console.error);
 
+function addToCart(pid){ alert('Para agregar al carrito necesitas iniciar sesión (JWT).'); }
+</script>
 </body></html>
