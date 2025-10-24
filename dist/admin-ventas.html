@@ -1,0 +1,91 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ventas • Admin</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";   /* REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJ...";                        /* REEMPLAZA */
+</script>
+</head><body class="container" style="max-width:900px">
+<header class="header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+  <strong>Realizar una venta</strong>
+  <nav style="display:flex;gap:8px">
+    <a class="btn" href="./admin-dashboard.html">Inicio</a>
+    <button class="btn" id="logout">Salir</button>
+  </nav>
+</header>
+
+<section class="card" style="padding:16px">
+  <form id="scan" class="grid grid-3" style="align-items:end">
+    <label>SKU <input id="sku" placeholder="Ej. SKU-01" required></label>
+    <label>Cantidad <input id="qty" type="number" value="1" min="1" required></label>
+    <button class="btn" type="submit">Agregar</button>
+  </form>
+  <div id="msg" class="text-muted mt-2"></div>
+</section>
+
+<section class="card" style="padding:16px;margin-top:12px">
+  <h3>Carrito</h3>
+  <div id="items"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+    <strong id="total">Total: Q 0.00</strong>
+    <button class="btn" id="checkout">Confirmar pedido</button>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('logout').onclick = signOut;
+
+const fmt = n=> new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ'}).format(n);
+const cart = []; // [{id, sku, name, price, qty}]
+
+function render(){
+  const el = document.getElementById('items');
+  el.innerHTML = cart.length ? cart.map((it,i)=>`
+    <div style="display:flex;gap:8px;justify-content:space-between;border-bottom:1px solid var(--border);padding:6px 0">
+      <span>${it.sku} — ${it.name}</span>
+      <span>Q ${it.price} x ${it.qty} = <strong>${fmt(it.price*it.qty)}</strong></span>
+      <button class="btn ghost" onclick="delItem(${i})">Quitar</button>
+    </div>
+  `).join('') : '<p class="text-muted">Vacío</p>';
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('total').textContent = `Total: ${fmt(total)}`;
+}
+window.delItem = i => { cart.splice(i,1); render(); };
+
+document.getElementById('scan').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const sku = document.getElementById('sku').value.trim();
+  const qty = Number(document.getElementById('qty').value||1);
+  document.getElementById('msg').textContent = 'Buscando…';
+  try{
+    const r = await fetch(`${API_BASE_URL}/api/products/sku/${encodeURIComponent(sku)}`);
+    if(!r.ok){ document.getElementById('msg').textContent = 'SKU no encontrado o no publicado.'; return; }
+    const p = await r.json();
+    cart.push({ id:p.id, sku:p.sku, name:p.name, price:Number(p.price||0), qty });
+    render();
+    document.getElementById('sku').value=''; document.getElementById('qty').value='1';
+    document.getElementById('msg').textContent = '';
+  }catch(err){ document.getElementById('msg').textContent = 'Error al buscar.'; }
+});
+
+document.getElementById('checkout').addEventListener('click', async ()=>{
+  if(!cart.length) return alert('Carrito vacío');
+  try{
+    // Transformar a formato esperado por tu endpoint de checkout
+    const items = cart.map(c=>({ product_id:c.id, sku:c.sku, quantity:c.qty, unit_price:c.price }));
+    const res = await fetchAuth(`${API_BASE_URL}/api/orders/checkout`, {
+      method:'POST',
+      body: JSON.stringify({ items })
+    });
+    alert('Pedido confirmado: ' + (res.id || 'OK'));
+    cart.length = 0; render();
+  }catch(err){ alert('Error en checkout: ' + err.message); }
+});
+
+ensureAdmin().then(ok=>ok && render());
+</script>
+</body></html>
