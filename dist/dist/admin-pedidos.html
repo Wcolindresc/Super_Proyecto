@@ -1,0 +1,66 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pedidos • Admin</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";   /* REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJ...";                        /* REEMPLAZA */
+</script>
+</head><body class="container">
+<header class="header" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+  <strong>Pedidos</strong>
+  <nav style="display:flex;gap:8px">
+    <a class="btn" href="./admin-dashboard.html">Inicio</a>
+    <button class="btn" id="logout">Salir</button>
+  </nav>
+</header>
+
+<section class="card" style="padding:16px">
+  <div class="toolbar" style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+    <div id="count" class="text-muted"></div>
+    <div>
+      <button class="btn" onclick="load(1)">Refrescar</button>
+    </div>
+  </div>
+  <div id="list" class="grid grid-2"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('logout').onclick = signOut;
+
+async function load(page=1){
+  const r = await fetchAuth(`${API_BASE_URL}/api/admin/orders?page=${page}&size=20`);
+  document.getElementById('count').textContent = `${r.count} pedidos`;
+  const el = document.getElementById('list');
+  el.innerHTML = (r.items||[]).map(o=>`
+    <article class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Orden ${o.id.slice(0,8)}…</strong>
+        <span class="badge">${o.status}</span>
+      </div>
+      <div>Total: Q ${o.total_amount||0}</div>
+      <div>Fecha: ${new Date(o.created_at).toLocaleString()}</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" onclick="view('${o.id}')">Ver</button>
+        <button class="btn" onclick="mark('${o.id}','pagado')">Marcar pagado</button>
+        <button class="btn" onclick="mark('${o.id}','enviado')">Marcar enviado</button>
+      </div>
+    </article>
+  `).join('');
+}
+async function view(id){
+  const o = await fetchAuth(`${API_BASE_URL}/api/admin/orders/${id}`);
+  alert(`Items:\n` + (o.items||[]).map(i=>`${i.sku} x${i.quantity} Q${i.unit_price}`).join('\n'));
+}
+async function mark(id,status){
+  await fetchAuth(`${API_BASE_URL}/api/admin/orders/${id}`, {
+    method:"PUT", body: JSON.stringify({status})
+  });
+  await load(1);
+}
+ensureAdmin().then(ok => ok && load(1));
+</script>
+</body></html>
