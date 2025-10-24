@@ -43,3 +43,27 @@ def upload_image():
 
     public_url = client.storage.from_("products").get_public_url(path)
     return jsonify({"path": path, "public_url": public_url}), 201
+
+
+    @bp.get("/users")
+@require_role("Admin")
+def list_users():
+    """Lista clientes registrados (app_users)."""
+    client = supa_service()
+    page = int(request.args.get("page", 1))
+    size = min(int(request.args.get("size", 20)), 100)
+    from_ = (page-1)*size
+    to_ = from_ + size - 1
+
+    cols = "id, email, full_name, created_at, auth_user_id"
+    data = (client.table("app_users")
+            .select(cols, count="exact")
+            .order("created_at", desc=True)
+            .range(from_, to_)
+            .execute())
+    return jsonify({
+        "items": data.data or [],
+        "count": data.count or 0,
+        "page": page, "size": size
+    })
+
