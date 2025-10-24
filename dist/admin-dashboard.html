@@ -1,0 +1,41 @@
+<!doctype html><html lang="es-GT"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel • La Bodegonea</title>
+<link rel="stylesheet" href="./assets/css/clean.css">
+<script>
+  window.API_BASE_URL = "https://super-proyecto.onrender.com";
+  window.SUPABASE_URL = "https://cfpkiklvmsmonqvmjzuy.supabase.co";   /* REEMPLAZA */
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmcGtpa2x2bXNtb25xdm1qenV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTI4MjIsImV4cCI6MjA3NjcyODgyMn0.kK2DBGI_Hun0_DWmsqV15yGRYpPsyx-akNKlqKXoZCQ";                        /* REEMPLAZA */
+</script>
+</head><body class="container">
+<header class="header" style="margin-bottom:16px">
+  <nav style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <a href="./"><strong>La Bodegonea</strong></a>
+    <div style="display:flex;gap:12px">
+      <a class="btn" href="./">Ver tienda</a>
+      <button class="btn" id="logout">Salir</button>
+    </div>
+  </nav>
+</header>
+
+<h1>Bienvenido. Elija una opción</h1>
+<div class="grid grid-3">
+  <a class="card" href="./admin-ventas.html"><h3>Realizar una venta</h3><p>POS simple para ventas rápidas.</p></a>
+  <a class="card" href="./admin-productos.html"><h3>Ver inventario</h3><p>Crear/editar/publicar productos y subir imágenes.</p></a>
+  <a class="card" href="./admin-clientes.html"><h3>Mis clientes</h3><p>Listado de clientes registrados.</p></a>
+  <a class="card" href="./admin-pedidos.html"><h3>Pedidos</h3><p>Revisar y actualizar estado.</p></a>
+  <a class="card" href="./admin-productos.html#subida"><h3>Cargar archivos</h3><p>Subir imágenes al Storage.</p></a>
+  <a class="card" href="./admin-productos.html"><h3>Ajustes</h3><p>Opciones básicas del catálogo.</p></a>
+</div>
+
+<footer class="footer" style="margin-top:16px"><div class="container" style="display:flex;gap:12px;flex-wrap:wrap">
+  <a href="./terminos.html">Términos</a><a href="./privacidad.html">Privacidad</a><a href="./devoluciones.html">Devoluciones</a>
+</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./assets/js/auth.js"></script>
+<script>
+document.getElementById('logout').onclick = signOut;
+ensureAdmin();
+</script>
+</body></html>
