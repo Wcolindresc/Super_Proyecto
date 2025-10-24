@@ -77,3 +77,29 @@ def get_product(pid):
         return jsonify(prod)
     except Exception as e:
         return jsonify({"error": "internal_error", "detail": str(e)}), 500
+
+    @bp.get("/products/sku/<sku>")
+def get_product_by_sku(sku):
+    """Devuelve un producto publicado por SKU exacto."""
+    try:
+        client = supa_public()
+        r = (client.table("products")
+            .select("*")
+            .eq("sku", sku)
+            .eq("status", "published")
+            .limit(1)
+            .execute())
+        rows = r.data or []
+        if not rows:
+            return jsonify({"error": "not_found"}), 404
+        prod = rows[0]
+        imgs = (client.table("product_images")
+            .select("id,url,sort_order,is_primary")
+            .eq("product_id", prod["id"])
+            .order("sort_order", desc=False)
+            .execute().data or [])
+        prod["images"] = imgs
+        return jsonify(prod)
+    except Exception as e:
+        return jsonify({"error": "internal_error", "detail": str(e)}), 500
+
